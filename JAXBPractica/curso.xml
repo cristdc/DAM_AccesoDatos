@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<curso>
+    <nombreCurso>Curso de Java</nombreCurso>
+    <estudiantes>
+        <nombre>Juan Perez</nombre>
+        <edad>20</edad>
+    </estudiantes>
+    <estudiantes>
+        <nombre>Ana Gómez</nombre>
+        <edad>22</edad>
+    </estudiantes>
+</curso>
