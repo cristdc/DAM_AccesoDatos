@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="VcsDirectoryMappings" defaultProject="true" />
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/EjemplosMultihilo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/GestorNotasEstudiantes" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/JAXBPractica" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ProyectoAnalizador" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/TareaFicheros" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/actAnalizadorDatos" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/actFicherosGastos" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/actRegistroGastos" vcs="Git" />
+  </component>
 </project>
