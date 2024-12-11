@@ -1,0 +1,16 @@
+[
+  {
+    "id": 5,
+    "nombre": "hola",
+    "apellidos": "a b",
+    "departamento": "acd",
+    "sueldo": 200.0
+  },
+  {
+    "id": 6,
+    "nombre": "hola2",
+    "apellidos": "a b",
+    "departamento": "acd",
+    "sueldo": 2002.0
+  }
+]
