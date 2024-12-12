@@ -1,19 +1,25 @@
 [ {
   "id" : 0,
-  "nombre" : "drf",
-  "apellidos" : "grfv",
-  "departamento" : "fed",
-  "sueldo" : 3.0
+  "nombre" : "empleado1",
+  "apellidos" : "e1 e1",
+  "departamento" : "d1",
+  "sueldo" : 1500.0
 }, {
   "id" : 1,
-  "nombre" : "rhf",
-  "apellidos" : "tehdf",
-  "departamento" : "tyehd",
-  "sueldo" : 2.0
+  "nombre" : "df",
+  "apellidos" : "fds",
+  "departamento" : "ds",
+  "sueldo" : 2333.0
+}, {
+  "id" : 1,
+  "nombre" : "empleado1",
+  "apellidos" : "e1 e1",
+  "departamento" : "d1",
+  "sueldo" : 1500.0
 }, {
   "id" : 2,
-  "nombre" : "ed",
-  "apellidos" : "efd",
-  "departamento" : "ed",
-  "sueldo" : 34.0
+  "nombre" : "df",
+  "apellidos" : "fds",
+  "departamento" : "ds",
+  "sueldo" : 2333.0
 } ]

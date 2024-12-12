@@ -4,13 +4,20 @@ import java.io.Serializable;
 
 // Modelo de empleado
 public class Empleado implements Serializable {
+
+    private static final long serialVersionUID = 1L; // Agregar serialVersionUID
+
     private int id;
     private String nombre;
     private String apellidos;
     private String departamento;
     private double sueldo;
 
-    // Constructor
+    // Constructor vacío (requerido para deserialización)
+    public Empleado() {
+    }
+
+    // Constructor con parámetros
     public Empleado(int id, String nombre, String apellidos, String departamento, double sueldo) {
         this.id = id;
         this.nombre = nombre;

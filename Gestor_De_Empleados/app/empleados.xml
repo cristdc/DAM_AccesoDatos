@@ -1,24 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <empleados>
     <empleado>
-        <apellidos>grfv</apellidos>
-        <departamento>fed</departamento>
+        <apellidos>e1 e1</apellidos>
+        <departamento>d1</departamento>
         <id>0</id>
-        <nombre>drf</nombre>
-        <sueldo>3.0</sueldo>
+        <nombre>empleado1</nombre>
+        <sueldo>1500.0</sueldo>
     </empleado>
     <empleado>
-        <apellidos>tehdf</apellidos>
-        <departamento>tyehd</departamento>
+        <apellidos>fds</apellidos>
+        <departamento>ds</departamento>
         <id>1</id>
-        <nombre>rhf</nombre>
-        <sueldo>2.0</sueldo>
-    </empleado>
-    <empleado>
-        <apellidos>efd</apellidos>
-        <departamento>ed</departamento>
-        <id>2</id>
-        <nombre>ed</nombre>
-        <sueldo>34.0</sueldo>
+        <nombre>df</nombre>
+        <sueldo>2333.0</sueldo>
     </empleado>
 </empleados>
