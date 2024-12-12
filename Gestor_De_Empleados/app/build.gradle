@@ -21,6 +21,9 @@ dependencies {
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.1.2'
     implementation 'com.google.code.gson:gson:2.11.0'
     implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.6' // Para JAXB
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
+
 }
 
 javafx {

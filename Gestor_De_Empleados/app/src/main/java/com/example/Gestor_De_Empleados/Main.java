@@ -1,12 +1,13 @@
+// Main.java
 package com.example.Gestor_De_Empleados;
 
 import com.example.Gestor_De_Empleados.controladores.FormularioEmpleados;
+import com.example.Gestor_De_Empleados.modelo.Empleado;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
@@ -37,6 +38,7 @@ public class Main extends Application {
         primaryStage.setTitle("Sistema de Gestión de Empleados");
         primaryStage.show();
 
+        // Obtén el controlador y pasa la lista de empleados
         FormularioEmpleados controller = loader.getController();
         controller.setData(empleados);
     }
@@ -52,11 +54,11 @@ public class Main extends Application {
         try (FileReader reader = new FileReader(CONFIG_FILE)) {
             config.load(reader);
         } catch (IOException e) {
-            System.out.println("No se pudo cargar el archivo de configuración. Se usará la configuración por defecto.");
+            System.out.println("No se pudo cargar el archivo de configuración. Usando valores predeterminados.");
             config.setProperty("fichero_binario", "empleados.dat");
             config.setProperty("fichero_xml", "empleados.xml");
             config.setProperty("fichero_json", "empleados.json");
-            config.setProperty("id_empleado", "0");
+            config.setProperty("id_empleado", "1");  // Empezamos con ID 1 si no existe el archivo
         }
     }
 
@@ -77,7 +79,6 @@ public class Main extends Application {
             return;
         }
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
-            // Leer ArrayList y convertir a ObservableList
             List<Empleado> list = (List<Empleado>) ois.readObject();
             empleados = FXCollections.observableArrayList(list);
         } catch (Exception e) {
@@ -89,7 +90,6 @@ public class Main extends Application {
     private static void saveData() {
         String fileName = config.getProperty("fichero_binario");
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
-            // Convertir ObservableList a ArrayList para serializar
             oos.writeObject(new ArrayList<>(empleados));
         } catch (IOException e) {
             e.printStackTrace();
@@ -98,15 +98,20 @@ public class Main extends Application {
 
     public static int getNextId() {
         int id = Integer.parseInt(config.getProperty("id_empleado"));
-        config.setProperty("id_empleado", String.valueOf(id + 1));
-        return id;
+        config.setProperty("id_empleado", String.valueOf(id + 1));  // Se incrementa el ID
+        saveConfig();  // Guardamos el nuevo ID en el archivo de configuración
+        return id;  // Retorna el ID actual antes de incrementarlo
+    }
+
+
+    public static String getConfigProperty(String key) {
+        return config.getProperty(key);
     }
 
     public static void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setContentText(content);
         alert.showAndWait();
     }
 }
-

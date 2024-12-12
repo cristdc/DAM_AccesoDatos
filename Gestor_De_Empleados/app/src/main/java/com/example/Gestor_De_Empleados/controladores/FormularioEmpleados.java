@@ -1,42 +1,26 @@
 package com.example.Gestor_De_Empleados.controladores;
 
-import com.example.Gestor_De_Empleados.Empleado;
+import com.example.Gestor_De_Empleados.Main;
+import com.example.Gestor_De_Empleados.modelo.Empleado;
+import com.example.Gestor_De_Empleados.modelo.ListaEmpleados;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.io.*;
-import java.util.List;
+import java.net.URL;
+import java.util.*;
+
 import com.google.gson.*;
 import javax.xml.bind.*;
 import javax.xml.bind.annotation.XmlElement;
 
-public class FormularioEmpleados {
-
-    @FXML
-    private Button btnActualizar;
-
-    @FXML
-    private Button btnBorrar;
-
-    @FXML
-    private Button btnExportarJSON;
-
-    @FXML
-    private Button btnExportarXML;
-
-    @FXML
-    private Button btnImportarJSON;
-
-    @FXML
-    private Button btnImportarXML;
-
-    @FXML
-    private Button btnInsertar;
-
+public class FormularioEmpleados implements Initializable {
     @FXML
     private TableView<Empleado> tableView;
 
@@ -54,6 +38,8 @@ public class FormularioEmpleados {
 
     private ObservableList<Empleado> empleados;
 
+    private int lastUsedId; // Variable para almacenar el último ID utilizado
+
     @FXML
     void borrar(ActionEvent event) {
         Empleado selected = tableView.getSelectionModel().getSelectedItem();
@@ -66,72 +52,90 @@ public class FormularioEmpleados {
 
     @FXML
     void exportarJSON(ActionEvent event) {
-        try (Writer writer = new FileWriter("empleados.json")) {
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-            // Asegúrate de que empleados no esté vacío
-            if (empleados != null && !empleados.isEmpty()) {
-                gson.toJson(empleados, writer);
-            } else {
-                showAlert("Error", "No hay empleados para exportar.");
-            }
+        try {
+            List<Empleado> empleados = leerEmpleadosBinario();
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.writerWithDefaultPrettyPrinter().writeValue(new File("empleados.json"), empleados);
+            System.out.println("Datos exportados a JSON correctamente.");
         } catch (IOException e) {
-            showAlert("Error", "No se pudo exportar a JSON: " + e.getMessage());
+            System.err.println("Error al exportar a JSON: " + e.getMessage());
         }
     }
-
 
     @FXML
     void exportarXML(ActionEvent event) {
         try {
-            if (empleados != null && !empleados.isEmpty()) {
-                JAXBContext context = JAXBContext.newInstance(EmpleadoListWrapper.class);
-                Marshaller marshaller = context.createMarshaller();
-                marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            List<Empleado> empleados = leerEmpleadosBinario();
+            ListaEmpleados listaEmpleados = new ListaEmpleados();
+            listaEmpleados.setEmpleados(empleados);
 
-                EmpleadoListWrapper wrapper = new EmpleadoListWrapper();
-                wrapper.setEmpleados(empleados);
+            JAXBContext context = JAXBContext.newInstance(ListaEmpleados.class);
+            Marshaller marshaller = context.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
-                // Asegúrate de que el archivo XML no esté bloqueado
-                File xmlFile = new File("empleados.xml");
-                marshaller.marshal(wrapper, xmlFile);
-            } else {
-                showAlert("Error", "No hay empleados para exportar.");
-            }
-        } catch (JAXBException e) {
-            showAlert("Error", "No se pudo exportar a XML: " + e.getMessage());
+            File file = new File("empleados.xml");
+            marshaller.marshal(listaEmpleados, file);
+
+            System.out.println("Datos exportados a XML correctamente.");
+        } catch (Exception e) {
+            System.err.println("Error al exportar a XML: " + e.getMessage());
         }
     }
 
-
     @FXML
     void importarJSON(ActionEvent event) {
-        try (Reader reader = new FileReader("empleados.json")) {
-            Gson gson = new Gson();
-            Empleado[] imported = gson.fromJson(reader, Empleado[].class);
+        try {
+            File file = new File("empleados.json");
+            if (!file.exists()) {
+                System.out.println("El archivo empleados.json no existe.");
+                return;
+            }
 
-            // Convertir el array de empleados a ObservableList
-            empleados.setAll(FXCollections.observableArrayList(imported));
-        } catch (IOException e) {
-            showAlert("Error", "No se pudo importar desde JSON.");
+            ObjectMapper mapper = new ObjectMapper();
+            List<Empleado> empleadosImportados = Arrays.asList(mapper.readValue(file, Empleado[].class));
+
+            List<Empleado> empleadosExistentes = leerEmpleadosBinario();
+            for (Empleado emp : empleadosImportados) {
+                emp.setId(++lastUsedId); // Asignar un nuevo ID único
+                empleadosExistentes.add(emp);
+            }
+
+            guardarEmpleadosBinario(empleadosExistentes);
+            tableView.getItems().addAll(empleadosImportados);
+            System.out.println("Datos importados desde JSON correctamente.");
+        } catch (Exception e) {
+            System.err.println("Error al importar desde JSON: " + e.getMessage());
         }
     }
 
     @FXML
     void importarXML(ActionEvent event) {
         try {
-            JAXBContext context = JAXBContext.newInstance(EmpleadoListWrapper.class);
+            File file = new File("empleados.xml");
+            if (!file.exists()) {
+                System.out.println("El archivo empleados.xml no existe.");
+                return;
+            }
+
+            JAXBContext context = JAXBContext.newInstance(ListaEmpleados.class);
             Unmarshaller unmarshaller = context.createUnmarshaller();
+            ListaEmpleados listaEmpleados = (ListaEmpleados) unmarshaller.unmarshal(file);
+            List<Empleado> empleadosImportados = listaEmpleados.getEmpleados();
 
-            // Leer el archivo XML y convertirlo en el wrapper
-            EmpleadoListWrapper wrapper = (EmpleadoListWrapper) unmarshaller.unmarshal(new File("empleados.xml"));
+            List<Empleado> empleadosExistentes = leerEmpleadosBinario();
+            for (Empleado emp : empleadosImportados) {
+                emp.setId(++lastUsedId); // Asignar un nuevo ID único
+                empleadosExistentes.add(emp);
+            }
 
-            // Convertir la lista de empleados en ObservableList
-            empleados.setAll(FXCollections.observableArrayList(wrapper.getEmpleados()));
-        } catch (JAXBException e) {
-            showAlert("Error", "No se pudo importar desde XML.");
+            guardarEmpleadosBinario(empleadosExistentes);
+            tableView.getItems().addAll(empleadosImportados);
+            System.out.println("Datos importados desde XML correctamente.");
+        } catch (Exception e) {
+            System.err.println("Error al importar desde XML: " + e.getMessage());
         }
     }
+
     @FXML
     void actualizar(ActionEvent event) {
         Empleado selected = tableView.getSelectionModel().getSelectedItem();
@@ -174,51 +178,84 @@ public class FormularioEmpleados {
             showAlert("Error", "Selecciona un empleado para actualizar.");
         }
     }
+
     @FXML
     void insertar(ActionEvent event) {
-        String nombre = txtNombre.getText();
-        String apellidos = txtApellidos.getText();
-        String departamento = txtDepartamento.getText();
-        String sueldoStr = txtSueldo.getText();
-
-        // Validaciones
-        if (nombre.length() > 30) {
-            showAlert("Error", "El nombre no puede tener más de 30 caracteres.");
-            return;
-        }
-        if (apellidos.length() > 60) {
-            showAlert("Error", "Los apellidos no pueden tener más de 60 caracteres.");
-            return;
-        }
-        if (departamento.length() > 30) {
-            showAlert("Error", "El departamento no puede tener más de 30 caracteres.");
-            return;
-        }
-
         try {
-            double sueldo = Double.parseDouble(sueldoStr);
+            String nombre = txtNombre.getText();
+            String apellidos = txtApellidos.getText();
+            String departamento = txtDepartamento.getText();
+            double sueldo = Double.parseDouble(txtSueldo.getText());
+
+            // Validaciones
+            if (nombre.length() > 30) {
+                showAlert("Error", "El nombre no puede tener más de 30 caracteres.");
+                return;
+            }
+            if (apellidos.length() > 60) {
+                showAlert("Error", "Los apellidos no pueden tener más de 60 caracteres.");
+                return;
+            }
+            if (departamento.length() > 30) {
+                showAlert("Error", "El departamento no puede tener más de 30 caracteres.");
+                return;
+            }
             if (sueldo < 0 || sueldo > 99999.99) {
                 showAlert("Error", "El sueldo debe estar entre 0 y 99,999.99.");
                 return;
             }
 
-            int id = com.example.Gestor_De_Empleados.Main.getNextId();
-            Empleado nuevo = new Empleado(id, nombre, apellidos, departamento, sueldo);
-            empleados.add(nuevo);
-        } catch (NumberFormatException e) {
-            showAlert("Error", "Sueldo debe ser un número válido.");
+            // Obtener el siguiente ID único
+            int idEmpleado = Main.getNextId();  // Obtenemos el siguiente ID y lo incrementamos
+
+            // Crear un nuevo empleado con un ID único
+            Empleado empleado = new Empleado(idEmpleado, nombre, apellidos, departamento, sueldo);
+
+            // Añadir empleado al archivo binario
+            List<Empleado> empleados = leerEmpleadosBinario();
+            empleados.add(empleado);
+            guardarEmpleadosBinario(empleados);
+
+            // Actualizar tabla y limpiar campos
+            tableView.getItems().add(empleado);
+            txtNombre.clear();
+            txtApellidos.clear();
+            txtDepartamento.clear();
+            txtSueldo.clear();
+        } catch (Exception e) {
+            System.err.println("Error al insertar empleado: " + e.getMessage());
         }
     }
 
-
-    public void setData(ObservableList<Empleado> empleados) {
-        this.empleados = empleados;
-        tableView.setItems(empleados);
-        inicializarColumnas();
+    private List<Empleado> leerEmpleadosBinario() {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("empleados.dat"))) {
+            return (List<Empleado>) ois.readObject();
+        } catch (Exception e) {
+            return new ArrayList<>(); // Si no existe el archivo, devuelve lista vacía
+        }
     }
 
-    private void inicializarColumnas() {
-        TableColumn<Empleado, Integer> colId = new TableColumn<>("ID");
+    private void guardarEmpleadosBinario(List<Empleado> empleados) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("empleados.dat"))) {
+            oos.writeObject(empleados);
+        } catch (IOException e) {
+            System.err.println("Error al guardar empleados: " + e.getMessage());
+        }
+    }
+
+    private void actualizarLastUsedId(int id) {
+        try (FileWriter writer = new FileWriter("config.properties")) {
+            Properties properties = new Properties();
+            properties.setProperty("lastUsedId", String.valueOf(id));
+            properties.store(writer, null);
+        } catch (IOException e) {
+            System.err.println("Error al actualizar el archivo de configuración: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        TableColumn<Empleado, String> colId = new TableColumn<>("ID");
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
 
         TableColumn<Empleado, String> colNombre = new TableColumn<>("Nombre");
@@ -234,6 +271,28 @@ public class FormularioEmpleados {
         colSueldo.setCellValueFactory(new PropertyValueFactory<>("sueldo"));
 
         tableView.getColumns().addAll(colId, colNombre, colApellidos, colDepartamento, colSueldo);
+
+        // Cargar el último ID utilizado desde el archivo de configuración
+        lastUsedId = cargarLastUsedId();
+
+        // Cargar empleados desde el archivo binario
+        List<Empleado> empleados = leerEmpleadosBinario();
+        tableView.getItems().addAll(empleados);
+    }
+
+    private int cargarLastUsedId() {
+        Properties properties = new Properties();
+        try (FileInputStream input = new FileInputStream("config.properties")) {
+            properties.load(input);
+            return Integer.parseInt(properties.getProperty("lastUsedId", "0"));
+        } catch (IOException e) {
+            return 0; // Si no existe, retornar ID 0
+        }
+    }
+
+    public void setData(ObservableList<Empleado> empleados) {
+        this.empleados = empleados;
+        tableView.setItems(empleados);
     }
 
     private void showAlert(String title, String content) {
@@ -241,19 +300,5 @@ public class FormularioEmpleados {
         alert.setTitle(title);
         alert.setContentText(content);
         alert.showAndWait();
-    }
-
-    // Wrapper para lista de empleados para JAXB
-    public static class EmpleadoListWrapper {
-        private List<Empleado> empleados;
-
-        @XmlElement(name = "empleado")
-        public List<Empleado> getEmpleados() {
-            return empleados;
-        }
-
-        public void setEmpleados(List<Empleado> empleados) {
-            this.empleados = empleados;
-        }
     }
 }
